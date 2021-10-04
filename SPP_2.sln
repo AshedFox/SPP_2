@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakerLib", "FakerLib\FakerLib.csproj", "{E8D76874-2928-44C5-B4B5-DDFCCD7EC080}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{E5EAD5AB-13A1-4799-86A3-525EC99AC7F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakerLib.Tests", "FakerLib.Tests\FakerLib.Tests.csproj", "{27060593-C7FF-434E-B76D-C97BB3C2C7AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntGeneratorPlugin", "IntGeneratorPlugin\IntGeneratorPlugin.csproj", "{FFD7BFAF-5759-4A8C-A009-1096BBA8C30F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoolGeneratorPlugin", "BoolGeneratorPlugin\BoolGeneratorPlugin.csproj", "{9CFEAEEE-F730-4B43-B1D5-54C10AF48ECD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FakerLib", "FakerLib", "{5BC74F90-D83B-4068-9977-C00527232F9D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{F14967CD-7BA8-45CC-9422-C7517590C327}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E8D76874-2928-44C5-B4B5-DDFCCD7EC080} = {5BC74F90-D83B-4068-9977-C00527232F9D}
+		{27060593-C7FF-434E-B76D-C97BB3C2C7AE} = {5BC74F90-D83B-4068-9977-C00527232F9D}
+		{FFD7BFAF-5759-4A8C-A009-1096BBA8C30F} = {F14967CD-7BA8-45CC-9422-C7517590C327}
+		{9CFEAEEE-F730-4B43-B1D5-54C10AF48ECD} = {F14967CD-7BA8-45CC-9422-C7517590C327}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E8D76874-2928-44C5-B4B5-DDFCCD7EC080}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8D76874-2928-44C5-B4B5-DDFCCD7EC080}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8D76874-2928-44C5-B4B5-DDFCCD7EC080}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8D76874-2928-44C5-B4B5-DDFCCD7EC080}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5EAD5AB-13A1-4799-86A3-525EC99AC7F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5EAD5AB-13A1-4799-86A3-525EC99AC7F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5EAD5AB-13A1-4799-86A3-525EC99AC7F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5EAD5AB-13A1-4799-86A3-525EC99AC7F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27060593-C7FF-434E-B76D-C97BB3C2C7AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27060593-C7FF-434E-B76D-C97BB3C2C7AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27060593-C7FF-434E-B76D-C97BB3C2C7AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27060593-C7FF-434E-B76D-C97BB3C2C7AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFD7BFAF-5759-4A8C-A009-1096BBA8C30F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFD7BFAF-5759-4A8C-A009-1096BBA8C30F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFD7BFAF-5759-4A8C-A009-1096BBA8C30F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFD7BFAF-5759-4A8C-A009-1096BBA8C30F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CFEAEEE-F730-4B43-B1D5-54C10AF48ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CFEAEEE-F730-4B43-B1D5-54C10AF48ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CFEAEEE-F730-4B43-B1D5-54C10AF48ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CFEAEEE-F730-4B43-B1D5-54C10AF48ECD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
