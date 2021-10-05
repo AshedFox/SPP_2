@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using FakerLib.Generators;
@@ -44,7 +45,7 @@ namespace FakerLib
             }
         }
 
-        public T Create<T>()
+        public T Create<T>() where T: class
         {
             return (T)Create(typeof(T));
         }
@@ -52,8 +53,8 @@ namespace FakerLib
         public object Create(Type type)
         {
             _classMembers = new List<MemberInfo>();
-
-            _rootMember = InitMembers(new MemberNode(type, type), 0);
+            
+            _rootMember = InitMembers(new MemberNode(type.Name, type.DeclaringType, type, type), 0);
 
             var result = Fill(_rootMember);
             
@@ -119,11 +120,13 @@ namespace FakerLib
             {
                 if (childMemberInfo is PropertyInfo { CanWrite: true } propertyInfo)
                 {
-                    memberNode.ChildNodes.Add(InitChildNode(propertyInfo, propertyInfo.PropertyType, level + 1));
+                    memberNode.ChildNodes.Add(InitChildNode(propertyInfo.Name, propertyInfo.DeclaringType, propertyInfo,
+                        propertyInfo.PropertyType, level + 1));
                 }
                 else if (childMemberInfo is FieldInfo { IsPublic: true } fieldInfo)
                 {
-                    memberNode.ChildNodes.Add(InitChildNode(fieldInfo, fieldInfo.FieldType, level + 1));
+                    memberNode.ChildNodes.Add(InitChildNode(fieldInfo.Name, fieldInfo.DeclaringType, fieldInfo,
+                        fieldInfo.FieldType, level + 1));
                 }
             }
 
@@ -137,35 +140,30 @@ namespace FakerLib
 
             foreach (var constructorParameter in constructorParameters)
             {
-                constructorNode.ChildNodes.Add(InitChildNode(constructorParameter.ParameterType,
-                    constructorParameter.ParameterType, level + 1));
+                constructorNode.ChildNodes.Add(InitChildNode(constructorParameter.Name, constructorInfo.DeclaringType,
+                    constructorParameter.ParameterType, constructorParameter.ParameterType, level + 1));
             }
 
             return constructorNode;
         }
 
-        private MemberNode InitChildNode(MemberInfo memberInfo, Type type, int level)
+        private MemberNode InitChildNode(string name, Type declaringType, MemberInfo memberInfo, Type type, int level)
         {
-            var childNode = new MemberNode(memberInfo, type);
+            var childNode = new MemberNode(name, declaringType, memberInfo, type);
 
-            if (memberInfo.Name == "Creator")
-            {
-                Console.WriteLine();
-            }
-            
             if (type.IsGenericType)
             {
                 var genericArgsTypes = type.GetGenericArguments();
 
                 foreach (var genericArgType in genericArgsTypes)
                 {
-                    var genericNode = new MemberNode(genericArgType, genericArgType);
+                    var genericNode = new MemberNode(genericArgType.Name, type, genericArgType, genericArgType);
 
                     if (IsComplex(genericArgType))
                     {
                         if (!_classMembers.Exists(info =>
                             info.DeclaringType == memberInfo.DeclaringType &&
-                            info.MemberType == memberInfo.MemberType && string.Equals(info.Name, memberInfo.Name))) 
+                            info.MemberType == memberInfo.MemberType && string.Equals(info.Name, memberInfo.Name)))
                         {
                             _classMembers.Add(memberInfo);
                             genericNode = InitMembers(genericNode, level);
@@ -183,24 +181,27 @@ namespace FakerLib
             {
                 var elementType = type.GetElementType();
 
-                var arrayNode = new MemberNode(elementType, elementType);
-
-                if (IsComplex(elementType))
+                if (elementType != null)
                 {
-                    if (!_classMembers.Exists(info =>
-                        info.DeclaringType == memberInfo.DeclaringType &&
-                        info.MemberType == memberInfo.MemberType && string.Equals(info.Name, memberInfo.Name)))
+                    var arrayNode = new MemberNode(elementType.Name, type, elementType, elementType);
+
+                    if (IsComplex(elementType))
                     {
-                        _classMembers.Add(memberInfo);
-                        arrayNode = InitMembers(arrayNode, level);
+                        if (!_classMembers.Exists(info =>
+                            info.DeclaringType == memberInfo.DeclaringType &&
+                            info.MemberType == memberInfo.MemberType && string.Equals(info.Name, memberInfo.Name)))
+                        {
+                            _classMembers.Add(memberInfo);
+                            arrayNode = InitMembers(arrayNode, level);
+                        }
+                        else if (level < _maxRepeatableNestingLevel)
+                        {
+                            arrayNode = InitMembers(arrayNode, level);
+                        }
                     }
-                    else if (level < _maxRepeatableNestingLevel)
-                    {
-                        arrayNode = InitMembers(arrayNode, level);
-                    }
-                }
                 
-                childNode.ArrayNode = arrayNode;
+                    childNode.ArrayNode = arrayNode;
+                }
             }
             else
             {
@@ -282,73 +283,110 @@ namespace FakerLib
             var type = memberNode.Type;
 
             object result;
-            
+
             if (_customGenerators.TryGetValue(memberNode.MemberInfo, out var customGenerator))
             {
                 result = customGenerator.Generate();
             }
             else
             {
-                if (type.IsGenericType)
+                var pair = _customGenerators.FirstOrDefault(pair => 
+                    pair.Key.Name.Equals(memberNode.Name, StringComparison.OrdinalIgnoreCase) &&
+                    pair.Key.DeclaringType == memberNode.DeclaringType &&
+                    (pair.Key is PropertyInfo propertyInfo && propertyInfo.PropertyType == memberNode.Type ||
+                     pair.Key is FieldInfo fieldInfo && fieldInfo.FieldType == memberNode.Type));
+
+                if (pair.Value is not null)
                 {
-                    
-                    var list = (IList)_collectionGenerator.Generate(memberNode.GenericNodes[0].Type);
-
-                    if (IsComplex(memberNode.GenericNodes[0].Type))
-                    {
-                        for (var i = 0; i < list.Count; i++)
-                        {
-                            list[i] = Fill(memberNode.GenericNodes[0]);
-                        }
-                    }
-                    else
-                    {
-                        if (_baseTypesGenerators.TryGetValue(memberNode.GenericNodes[0].Type, out var generator))
-                        {
-                            for (var i = 0; i < list.Count; i++)
-                            {
-                                list[i] = generator.Generate();
-                            }
-                        }
-                    }
-
-                    result =  list;
-                }
-                else if (type.IsArray)
-                {
-                    var array = (Array)_arrayGenerator.Generate(memberNode.ArrayNode.Type);
-
-                    if (IsComplex(memberNode.ArrayNode.Type))
-                    {
-                        for (var i = 0; i < array.Length; i++)
-                        {
-                            array.SetValue(Fill(memberNode.ArrayNode), i);
-                        }
-                    }
-                    else
-                    {
-                        if (_baseTypesGenerators.TryGetValue(memberNode.ArrayNode.Type, out var generator))
-                        {
-                            for (var i = 0; i < array.Length; i++)
-                            {
-                                array.SetValue(generator.Generate(), i);
-                            }
-                        }
-                    }
-
-                    result =  array;
+                    result = pair.Value.Generate();
                 }
                 else
                 {
-                    if (IsComplex(memberNode.Type))
+                    if (type.IsGenericType)
                     {
-                        result =  Fill(memberNode);
+                        var list = (IList)_collectionGenerator.Generate(memberNode.GenericNodes[0].Type);
+
+                        if (IsComplex(memberNode.GenericNodes[0].Type))
+                        {
+                            if (memberNode.GenericNodes[0].ChildNodes.Count == 0 &&
+                                memberNode.GenericNodes[0].ConstructorNode is null)
+                            {
+                                list = null;
+                            }
+                            else
+                            {
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    list[i] = Fill(memberNode.GenericNodes[0]);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (_baseTypesGenerators.TryGetValue(memberNode.GenericNodes[0].Type,
+                                out var generator))
+                            {
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    list[i] = generator.Generate();
+                                }
+                            }
+                            else
+                            {
+                                list = null;
+                            }
+                        }
+
+                        result = list;
+                    }
+                    else if (type.IsArray)
+                    {
+                        var array = (Array)_arrayGenerator.Generate(memberNode.ArrayNode.Type);
+
+                        if (IsComplex(memberNode.ArrayNode.Type))
+                        {
+                            if (memberNode.ArrayNode.ChildNodes.Count == 0 &&
+                                memberNode.ArrayNode.ConstructorNode is null)
+                            {
+                                array = null;
+                            }
+                            else
+                            {
+                                for (var i = 0; i < array.Length; i++)
+                                {
+                                    array.SetValue(Fill(memberNode.ArrayNode), i);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (_baseTypesGenerators.TryGetValue(memberNode.ArrayNode.Type, out var generator))
+                            {
+                                for (var i = 0; i < array.Length; i++)
+                                {
+                                    array.SetValue(generator.Generate(), i);
+                                }
+                            }
+                            else
+                            {
+                                array = null;
+                            }
+                        }
+
+                        result = array;
                     }
                     else
                     {
-                        result = _baseTypesGenerators.TryGetValue(type, out var generator)
-                            ? generator.Generate()
-                            : RuntimeHelpers.GetUninitializedObject(type);
+                        if (IsComplex(memberNode.Type))
+                        {
+                            result = Fill(memberNode);
+                        }
+                        else
+                        {
+                            result = _baseTypesGenerators.TryGetValue(type, out var generator)
+                                ? generator.Generate()
+                                : RuntimeHelpers.GetUninitializedObject(type);
+                        }
                     }
                 }
             }

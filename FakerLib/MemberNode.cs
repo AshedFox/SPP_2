@@ -6,6 +6,8 @@ namespace FakerLib
 {
     public class MemberNode
     {
+        public string Name { get; }
+        public Type DeclaringType { get; }
         public MemberInfo MemberInfo { get; }
         public Type Type { get; }
         public MemberNode ArrayNode { get; set; }
@@ -13,10 +15,12 @@ namespace FakerLib
         public List<MemberNode> ChildNodes { get; } = new();
         public ConstructorNode ConstructorNode { get; set; }
 
-        public MemberNode(MemberInfo memberInfo, Type type)
+        public MemberNode(string name, Type declaringType, MemberInfo memberInfo, Type type)
         {
             MemberInfo = memberInfo;
             Type = type;
+            Name = name;
+            DeclaringType = declaringType;
         }
     }
 }

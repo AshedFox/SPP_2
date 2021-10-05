@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ConsoleApp1.Models;
 using FakerLib;
 using FakerLib.Generators.Custom;
@@ -16,19 +19,15 @@ namespace ConsoleApp1
             var fakerConfig = new FakerConfig();
             fakerConfig.Add<User, string, NameGenerator>(user => user.Name);
             
-            var faker = new Faker(config: fakerConfig);
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            var chats = new List<Chat>();
-            for (int i = 0; i < 10; i++)
-            {
-                chats.Add(faker.Create<Chat>());
-            }
+            var faker = new Faker(2, fakerConfig);
             
-            stopwatch.Stop();
-            Console.WriteLine($"{stopwatch.ElapsedMilliseconds}ms");
+            var user = faker.Create<User>();
+
+            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true};
+            var json = JsonSerializer.Serialize(user,jsonOptions);
+            
+            Console.WriteLine(json);
+            File.WriteAllText( Path.Combine(AppContext.BaseDirectory, "json.json"), json);
         }
     }
 }
