@@ -23,7 +23,7 @@ namespace ConsoleApp1
             
             var user = faker.Create<User>();
 
-            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true};
+            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, IncludeFields = true };
             var json = JsonSerializer.Serialize(user,jsonOptions);
             
             Console.WriteLine(json);
